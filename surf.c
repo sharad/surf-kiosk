@@ -1853,21 +1853,22 @@ zoom(Client *c, const Arg *a)
 static void
 msgext(Client *c, char type, const Arg *a)
 {
-	static char msg[MSGBUFSZ];
+	static unsigned char msg[MSGBUFSZ];
 	int ret;
 
 	if (spair[0] < 0)
 		return;
 
-	if ((ret = snprintf(msg, sizeof(msg), "%c%c%c", c->pageid, type, a->i))
-	    >= sizeof(msg)) {
+	ret = snprintf(msg, sizeof(msg), "%c%c%c",
+	               (unsigned char)c->pageid, type, (signed char)a->i);
+	if (ret >= sizeof(msg)) {
 		fprintf(stderr, "surf: message too long: %d\n", ret);
 		return;
 	}
 
 	if (send(spair[0], msg, ret, 0) != ret)
-		fprintf(stderr, "surf: error sending: %u%c%d (%d)\n",
-		        c->pageid, type, a->i, ret);
+		fprintf(stderr, "surf: error sending: %hhu/%c/%d (%d)\n",
+		        (unsigned char)c->pageid, type, a->i, ret);
 }
 
 void

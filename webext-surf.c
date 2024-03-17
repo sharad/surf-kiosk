@@ -39,7 +39,7 @@ readsock(GIOChannel *s, GIOCondition c, gpointer unused)
 	}
 
 	if (msgsz < 2) {
-		fprintf(stderr, "webext: readsock: message too short: %d\n",
+		fprintf(stderr, "webext: readsock: message too short: %lu\n",
 		        msgsz);
 		return TRUE;
 	}
@@ -54,7 +54,7 @@ readsock(GIOChannel *s, GIOCondition c, gpointer unused)
 		if (msgsz != 3)
 			return TRUE;
 		snprintf(js, sizeof(js),
-		         "window.scrollBy(window.innerWidth/100*%d,0);",
+		         "window.scrollBy(window.innerWidth/100*%hhd,0);",
 		         msg[2]);
 		jsc_context_evaluate(jsc, js, -1);
 		break;
@@ -62,7 +62,7 @@ readsock(GIOChannel *s, GIOCondition c, gpointer unused)
 		if (msgsz != 3)
 			return TRUE;
 		snprintf(js, sizeof(js),
-		         "window.scrollBy(0,window.innerHeight/100*%d);",
+		         "window.scrollBy(0,window.innerHeight/100*%hhd);",
 		         msg[2]);
 		jsc_context_evaluate(jsc, js, -1);
 		break;
