@@ -67,7 +67,6 @@ typedef enum {
 	Geolocation,
 	HideBackground,
 	Inspector,
-	Java,
 	JavaScript,
 	KioskMode,
 	LoadImages,
@@ -285,7 +284,6 @@ static ParamName loadcommitted[] = {
 	Geolocation,
 	HideBackground,
 	Inspector,
-	Java,
 //	KioskMode,
 	MediaManualPlay,
 	RunInFullscreen,
@@ -809,9 +807,6 @@ setparameter(Client *c, int refresh, ParamName p, const Arg *a)
 	case Inspector:
 		webkit_settings_set_enable_developer_extras(c->settings, a->i);
 		return; /* do not update */
-	case Java:
-		webkit_settings_set_enable_java(c->settings, a->i);
-		return; /* do not update */
 	case JavaScript:
 		webkit_settings_set_enable_javascript(c->settings, a->i);
 		break;
@@ -1124,7 +1119,6 @@ newview(Client *c, WebKitWebView *rv)
 		   "enable-dns-prefetching", curconfig[DNSPrefetch].val.i,
 		   "enable-html5-database", curconfig[DiskCache].val.i,
 		   "enable-html5-local-storage", curconfig[DiskCache].val.i,
-		   "enable-java", curconfig[Java].val.i,
 		   "enable-javascript", curconfig[JavaScript].val.i,
 		   "enable-site-specific-quirks", curconfig[SiteQuirks].val.i,
 		   "enable-smooth-scrolling", curconfig[SmoothScrolling].val.i,
