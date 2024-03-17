@@ -19,23 +19,6 @@
 static WebKitWebExtension *webext;
 static int sock;
 
-static void
-msgsurf(guint64 pageid, const char *s)
-{
-	static char msg[MSGBUFSZ];
-	size_t sln = strlen(s);
-	int ret;
-
-	if ((ret = snprintf(msg, sizeof(msg), "%c%s", pageid, s))
-	    >= sizeof(msg)) {
-		fprintf(stderr, "webext: msg: message too long: %d\n", ret);
-		return;
-	}
-
-	if (send(sock, msg, ret, 0) < 0)
-		fprintf(stderr, "webext: error sending: %s\n", msg+1);
-}
-
 static gboolean
 readsock(GIOChannel *s, GIOCondition c, gpointer unused)
 {

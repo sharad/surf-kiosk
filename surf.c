@@ -189,7 +189,6 @@ static gboolean buttonreleased(GtkWidget *w, GdkEvent *e, Client *c);
 static GdkFilterReturn processx(GdkXEvent *xevent, GdkEvent *event,
                                 gpointer d);
 static gboolean winevent(GtkWidget *w, GdkEvent *e, Client *c);
-static gboolean readsock(GIOChannel *s, GIOCondition ioc, gpointer unused);
 static void showview(WebKitWebView *v, Client *c);
 static GtkWidget *createwindow(Client *c);
 static gboolean loadfailedtls(WebKitWebView *v, gchar *uri,
@@ -370,7 +369,6 @@ setup(void)
 		g_io_channel_set_flags(gchanin, g_io_channel_get_flags(gchanin)
 		                       | G_IO_FLAG_NONBLOCK, NULL);
 		g_io_channel_set_close_on_unref(gchanin, TRUE);
-		g_io_add_watch(gchanin, G_IO_IN, readsock, NULL);
 	}
 
 
@@ -1224,30 +1222,6 @@ newview(Client *c, WebKitWebView *rv)
 	setparameter(c, 0, DarkMode, &curconfig[DarkMode].val);
 
 	return v;
-}
-
-static gboolean
-readsock(GIOChannel *s, GIOCondition ioc, gpointer unused)
-{
-	static char msg[MSGBUFSZ];
-	GError *gerr = NULL;
-	gsize msgsz;
-
-	if (g_io_channel_read_chars(s, msg, sizeof(msg), &msgsz, &gerr) !=
-	    G_IO_STATUS_NORMAL) {
-		if (gerr) {
-			fprintf(stderr, "surf: error reading socket: %s\n",
-			        gerr->message);
-			g_error_free(gerr);
-		}
-		return TRUE;
-	}
-	if (msgsz < 2) {
-		fprintf(stderr, "surf: message too short: %d\n", msgsz);
-		return TRUE;
-	}
-
-	return TRUE;
 }
 
 void
