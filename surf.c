@@ -847,7 +847,8 @@ setparameter(Client *c, int refresh, ParamName p, const Arg *a)
 	case SpellLanguages:
 		return; /* do nothing */
 	case StrictTLS:
-		webkit_web_context_set_tls_errors_policy(c->context, a->i ?
+		webkit_website_data_manager_set_tls_errors_policy(
+		    webkit_web_view_get_website_data_manager(c->view), a->i ?
 		    WEBKIT_TLS_ERRORS_POLICY_FAIL :
 		    WEBKIT_TLS_ERRORS_POLICY_IGNORE);
 		break;
@@ -1148,7 +1149,6 @@ newview(Client *c, WebKitWebView *rv)
 			          NULL));
 		}
 
-
 		cookiemanager = webkit_web_context_get_cookie_manager(context);
 
 		/* rendering process model, can be a shared unique one
@@ -1156,7 +1156,8 @@ newview(Client *c, WebKitWebView *rv)
 		webkit_web_context_set_process_model(context,
 		    WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES);
 		/* TLS */
-		webkit_web_context_set_tls_errors_policy(context,
+		webkit_website_data_manager_set_tls_errors_policy(
+		    webkit_web_context_get_website_data_manager(context),
 		    curconfig[StrictTLS].val.i ? WEBKIT_TLS_ERRORS_POLICY_FAIL :
 		    WEBKIT_TLS_ERRORS_POLICY_IGNORE);
 		/* disk cache */
