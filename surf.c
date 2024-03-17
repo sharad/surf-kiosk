@@ -64,7 +64,6 @@ typedef enum {
 	Ephemeral,
 	FileURLsCrossAccess,
 	FontSize,
-	FrameFlattening,
 	Geolocation,
 	HideBackground,
 	Inspector,
@@ -283,7 +282,6 @@ static ParamName loadcommitted[] = {
 	DarkMode,
 	DefaultCharset,
 	FontSize,
-	FrameFlattening,
 	Geolocation,
 	HideBackground,
 	Inspector,
@@ -679,7 +677,6 @@ gettogglestats(Client *c)
 	togglestats[4] = curconfig[LoadImages].val.i ?      'I' : 'i';
 	togglestats[5] = curconfig[JavaScript].val.i ?      'S' : 's';
 	togglestats[6] = curconfig[Style].val.i ?           'M' : 'm';
-	togglestats[7] = curconfig[FrameFlattening].val.i ? 'F' : 'f';
 	togglestats[8] = curconfig[Certificate].val.i ?     'X' : 'x';
 	togglestats[9] = curconfig[StrictTLS].val.i ?       'T' : 't';
 }
@@ -802,9 +799,6 @@ setparameter(Client *c, int refresh, ParamName p, const Arg *a)
 	case FontSize:
 		webkit_settings_set_default_font_size(c->settings, a->i);
 		return; /* do not update */
-	case FrameFlattening:
-		webkit_settings_set_enable_frame_flattening(c->settings, a->i);
-		break;
 	case Geolocation:
 		refresh = 0;
 		break;
@@ -1128,7 +1122,6 @@ newview(Client *c, WebKitWebView *rv)
 		   "enable-caret-browsing", curconfig[CaretBrowsing].val.i,
 		   "enable-developer-extras", curconfig[Inspector].val.i,
 		   "enable-dns-prefetching", curconfig[DNSPrefetch].val.i,
-		   "enable-frame-flattening", curconfig[FrameFlattening].val.i,
 		   "enable-html5-database", curconfig[DiskCache].val.i,
 		   "enable-html5-local-storage", curconfig[DiskCache].val.i,
 		   "enable-java", curconfig[Java].val.i,
