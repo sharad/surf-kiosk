@@ -1152,10 +1152,6 @@ newview(Client *c, WebKitWebView *rv)
 
 		cookiemanager = webkit_web_context_get_cookie_manager(context);
 
-		/* rendering process model, can be a shared unique one
-		 * or one for each view */
-		webkit_web_context_set_process_model(context,
-		    WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES);
 		/* TLS */
 		webkit_website_data_manager_set_tls_errors_policy(
 		    webkit_web_context_get_website_data_manager(context),
