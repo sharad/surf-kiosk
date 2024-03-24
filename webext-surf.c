@@ -25,6 +25,7 @@ readsock(GIOChannel *s, GIOCondition c, gpointer unused)
 	static char js[48], msg[MSGBUFSZ];
 	WebKitWebPage *page;
 	JSCContext *jsc;
+	JSCValue *jsv;
 	GError *gerr = NULL;
 	gsize msgsz;
 
@@ -48,6 +49,7 @@ readsock(GIOChannel *s, GIOCondition c, gpointer unused)
 		return TRUE;
 
 	jsc = webkit_frame_get_js_context(webkit_web_page_get_main_frame(page));
+	jsv = NULL;
 
 	switch (msg[1]) {
 	case 'h':
@@ -56,7 +58,7 @@ readsock(GIOChannel *s, GIOCondition c, gpointer unused)
 		snprintf(js, sizeof(js),
 		         "window.scrollBy(window.innerWidth/100*%hhd,0);",
 		         msg[2]);
-		jsc_context_evaluate(jsc, js, -1);
+		jsv = jsc_context_evaluate(jsc, js, -1);
 		break;
 	case 'v':
 		if (msgsz != 3)
@@ -64,9 +66,13 @@ readsock(GIOChannel *s, GIOCondition c, gpointer unused)
 		snprintf(js, sizeof(js),
 		         "window.scrollBy(0,window.innerHeight/100*%hhd);",
 		         msg[2]);
-		jsc_context_evaluate(jsc, js, -1);
+		jsv = jsc_context_evaluate(jsc, js, -1);
 		break;
 	}
+
+	g_object_unref(jsc);
+	if (jsv)
+		g_object_unref(jsv);
 
 	return TRUE;
 }
