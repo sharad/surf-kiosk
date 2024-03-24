@@ -19,17 +19,73 @@
 static WebKitWebExtension *webext;
 static int sock;
 
-static gboolean
-readsock(GIOChannel *s, GIOCondition c, gpointer unused)
+/*
+ * Return:
+ * 0 No data processed: need more data
+ * > 0 Amount of data processed or discarded
+ */
+static size_t
+evalmsg(char *msg, size_t sz)
 {
-	static char js[48], msg[MSGBUFSZ];
+	char js[48];
 	WebKitWebPage *page;
 	JSCContext *jsc;
 	JSCValue *jsv;
-	GError *gerr = NULL;
-	gsize msgsz;
 
-	if (g_io_channel_read_chars(s, msg, sizeof(msg), &msgsz, &gerr) !=
+	if (!(page = webkit_web_extension_get_page(webext, msg[0])))
+		return sz;
+
+	if (sz < 2)
+		return 0;
+
+	jsc = webkit_frame_get_js_context(webkit_web_page_get_main_frame(page));
+	jsv = NULL;
+
+	switch (msg[1]) {
+	case 'h':
+		if (sz < 3) {
+			sz = 0;
+			break;
+		}
+		sz = 3;
+		snprintf(js, sizeof(js),
+		         "window.scrollBy(window.innerWidth/100*%hhd,0);",
+		         msg[2]);
+		jsv = jsc_context_evaluate(jsc, js, -1);
+		break;
+	case 'v':
+		if (sz < 3) {
+			sz = 0;
+			break;
+		}
+		sz = 3;
+		snprintf(js, sizeof(js),
+		         "window.scrollBy(0,window.innerHeight/100*%hhd);",
+		         msg[2]);
+		jsv = jsc_context_evaluate(jsc, js, -1);
+		break;
+	default:
+		fprintf(stderr, "%s:%d:evalmsg: unknown cmd(%zu): '%#x'\n",
+		        __FILE__, __LINE__, sz, msg[1]);
+	}
+
+	g_object_unref(jsc);
+	if (jsv)
+		g_object_unref(jsv);
+
+	return sz;
+}
+
+static gboolean
+readsock(GIOChannel *s, GIOCondition c, gpointer unused)
+{
+	static char msg[MSGBUFSZ];
+	static size_t msgoff;
+	GError *gerr = NULL;
+	size_t sz;
+	gsize rsz;
+
+	if (g_io_channel_read_chars(s, msg+msgoff, sizeof(msg)-msgoff, &rsz, &gerr) !=
 	    G_IO_STATUS_NORMAL) {
 		if (gerr) {
 			fprintf(stderr, "webext: error reading socket: %s\n",
@@ -38,41 +94,23 @@ readsock(GIOChannel *s, GIOCondition c, gpointer unused)
 		}
 		return TRUE;
 	}
-
-	if (msgsz < 2) {
-		fprintf(stderr, "webext: readsock: message too short: %lu\n",
-		        msgsz);
-		return TRUE;
+	if (msgoff >= sizeof(msg)) {
+		fprintf(stderr, "%s:%d:%s: msgoff: %zu", __FILE__, __LINE__, __func__, msgoff);
+		return FALSE;
 	}
 
-	if (!(page = webkit_web_extension_get_page(webext, msg[0])))
-		return TRUE;
-
-	jsc = webkit_frame_get_js_context(webkit_web_page_get_main_frame(page));
-	jsv = NULL;
-
-	switch (msg[1]) {
-	case 'h':
-		if (msgsz != 3)
-			return TRUE;
-		snprintf(js, sizeof(js),
-		         "window.scrollBy(window.innerWidth/100*%hhd,0);",
-		         msg[2]);
-		jsv = jsc_context_evaluate(jsc, js, -1);
-		break;
-	case 'v':
-		if (msgsz != 3)
-			return TRUE;
-		snprintf(js, sizeof(js),
-		         "window.scrollBy(0,window.innerHeight/100*%hhd);",
-		         msg[2]);
-		jsv = jsc_context_evaluate(jsc, js, -1);
-		break;
+	for (rsz += msgoff; rsz; rsz -= sz) {
+		sz = evalmsg(msg, rsz);
+		if (sz == 0) {
+			/* need more data */
+			break;
+		}
+		if (sz != rsz) {
+			/* continue processing message */
+			memmove(msg, msg+sz, rsz-sz);
+		}
 	}
-
-	g_object_unref(jsc);
-	if (jsv)
-		g_object_unref(jsv);
+	msgoff = rsz;
 
 	return TRUE;
 }
