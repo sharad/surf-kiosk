@@ -1407,14 +1407,16 @@ createwindow(Client *c)
         Display *dpy;
         Window root;
         Window xwin;
+        // GtkWidget *w;
+        GdkWindow *gdk_x11_window;
         XSetWindowAttributes attrs;
-        GC gc;
-        XEvent event;
-        XColor color;
-        Colormap colormap;
         XVisualInfo visinfo;
         XMatchVisualInfo(dpy, DefaultScreen(dpy), DefaultDepth(dpy, DefaultScreen(dpy)), TrueColor, &visinfo);
 
+        // Initialize GTK
+        gtk_init(NULL, NULL);
+
+        // Get the X display and root window
         dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
         root = DefaultRootWindow(dpy);
 
@@ -1431,11 +1433,11 @@ createwindow(Client *c)
         XMapWindow(dpy, xwin);
         XFlush(dpy);
 
-        // Create a GTK widget to overlay on the X11 window
+        // Create a GTK window
         w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
         // Associate the GTK widget with the X11 window
-        GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), xwin);
+        gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), xwin);
         gtk_widget_set_window(w, gdk_x11_window);
 
         gtk_widget_realize(w);
@@ -1443,6 +1445,7 @@ createwindow(Client *c)
 
         printf("GTK window created and associated with X11 window on root\n");
       }
+
 
     } else {
         w = gtk_plug_new(embed);
