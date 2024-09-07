@@ -1394,15 +1394,18 @@ createwindow(Client *c)
 	char *wmstr;
 	GtkWidget *w;
 
-	if (embed) {
-		// w = gtk_plug_new(embed);
+  if (embed) {
+    if (embed == DefaultRootWindow(gdk_x11_display_get_xdisplay(gdk_display_get_default()))) {
+        // Handle root window case differently
+        GdkWindow *gwin = gdk_get_default_root_window();  // Get the default root window
+        w = gtk_widget_new(GTK_TYPE_PLUG, "window", gwin, NULL);  // Use plug for root window
 
-    // If an embed window ID is provided, use it.
-    GdkWindow *gwin = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), embed);
-    w = gtk_widget_new(GTK_TYPE_PLUG, "window", gwin, NULL);
-    gtk_widget_show(w); // Show the plug widget to render in the provided window
- 
-	} else {
+        // Direct X11 drawing or other lower-level operations might be needed here
+        gtk_widget_show(w);
+    } else {
+        w = gtk_plug_new(embed);
+    }
+  } else {
 		w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 		wmstr = g_path_get_basename(argv0);
