@@ -1400,20 +1400,19 @@ createwindow(Client *c)
       printf("\n\nUsing root window\n\n");
 
 
-
         // Use the root window directly
         GdkWindow *gwin = gdk_get_default_root_window();  // Get the default root window
-        w = gtk_widget_new(GTK_TYPE_WINDOW);  // Create a new GTK widget window
+        w = gtk_window_new(GTK_WINDOW_TOPLEVEL);  // Create a new top-level GTK window
 
-        // Set the GDK window for drawing
-        gtk_widget_set_window(w, gwin);
+        // Set the parent window to the root window
+        gtk_widget_set_parent_window(w, gwin);
+        gtk_widget_realize(w);  // Ensure the widget is realized so it can be drawn
 
-        // Set the background to be transparent if needed
+        // Optionally set the background color to transparent
         GdkRGBA bgcolor = { 0, 0, 0, 0 };  // Fully transparent background
         gtk_widget_override_background_color(w, GTK_STATE_FLAG_NORMAL, &bgcolor);
 
-        gtk_widget_show(w);  // Show the widget
-  
+        gtk_widget_show(w);  // Show the widget  
 
     } else {
         w = gtk_plug_new(embed);
