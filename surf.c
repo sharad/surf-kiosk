@@ -1401,21 +1401,22 @@ createwindow(Client *c)
   if (embed) {
     if (embed == DefaultRootWindow(gdk_x11_display_get_xdisplay(gdk_display_get_default()))) {
       printf("\n\nUsing root window\n\n");
+            // Get the display and root window
+            dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+            root = DefaultRootWindow(dpy);
 
+            // Create a GTK window
+            w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-      // Get the display and root window
-      Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
-      Window root = DefaultRootWindow(dpy);
+            // Set the GTK window to use the root window
+            GdkWindow *gdk_root_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), root);
+            gtk_widget_set_window(w, gdk_root_window);
 
-      // Create a GTK window to use with the root window
-      w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-      GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), root);
-      gtk_widget_set_window(w, gdk_x11_window);
+            // Realize and show the GTK window
+            gtk_widget_realize(w);
+            gtk_widget_show_all(w);
 
-      gtk_widget_realize(w);
-      gtk_widget_show_all(w);
-
-      printf("GTK window created and associated with root window\n");
+            printf("GTK window created and associated with root window\n");
 
     } else {
         w = gtk_plug_new(embed);
