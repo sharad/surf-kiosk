@@ -1399,12 +1399,28 @@ createwindow(Client *c)
 
       printf("\n\nUsing root window\n\n");
 
-        // Handle root window case differently
-        GdkWindow *gwin = gdk_get_default_root_window();  // Get the default root window
-        w = gtk_widget_new(GTK_TYPE_PLUG, "window", gwin, NULL);  // Use plug for root window
 
-        // Direct X11 drawing or other lower-level operations might be needed here
-        gtk_widget_show(w);
+
+        // Handle root window case using X11 directly
+        Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+        Window root = DefaultRootWindow(dpy);
+        
+        // Create a simple X11 window on the root window
+        XSetWindowAttributes attr;
+        attr.override_redirect = True;  // Disable window manager control
+        attr.background_pixel = XBlackPixel(dpy, DefaultScreen(dpy));
+        Window x11_win = XCreateWindow(dpy, root, 0, 0, DisplayWidth(dpy, 0), DisplayHeight(dpy, 0), 0, 
+                                       CopyFromParent, InputOutput, CopyFromParent, CWOverrideRedirect | CWBackPixel, &attr);
+
+        XMapWindow(dpy, x11_win);  // Map the window
+        XFlush(dpy);
+
+        // Use the newly created X11 window as a GdkWindow
+        GdkWindow *gwin = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), x11_win);
+        w = gtk_widget_new(GTK_TYPE_PLUG, "window", gwin, NULL);
+        gtk_widget_show(w);  // Show the plug widget to render in the created X11 window
+  
+
     } else {
         w = gtk_plug_new(embed);
     }
