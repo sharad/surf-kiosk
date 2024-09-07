@@ -1406,13 +1406,13 @@ createwindow(Client *c)
 
 
       {
-        dpy = XOpenDisplay(NULL);
-        root = DefaultRootWindow(dpy);
+        Display *dpy = XOpenDisplay(NULL);
+        Window root = DefaultRootWindow(dpy);
 
         XSetWindowAttributes attrs;
         attrs.override_redirect = True;  // Window manager should not control this window
         attrs.background_pixel = XBlackPixel(dpy, DefaultScreen(dpy));
-        xwin = XCreateWindow(
+        Window xwin = XCreateWindow(
           dpy, root,
           0, 0, DisplayWidth(dpy, 0), DisplayHeight(dpy, 0),
           0, CopyFromParent, InputOutput, CopyFromParent,
