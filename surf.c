@@ -1400,20 +1400,31 @@ createwindow(Client *c)
       printf("\n\nUsing root window\n\n");
 
 
-        // Use the root window directly
-        GdkWindow *gwin = gdk_get_default_root_window();  // Get the default root window
-        w = gtk_window_new(GTK_WINDOW_TOPLEVEL);  // Create a new top-level GTK window
+        // Handle the root window case directly using X11
+        Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+        Window root = DefaultRootWindow(dpy);
 
-        // Set the parent window to the root window
-        gtk_widget_set_parent_window(w, gwin);
-        gtk_widget_realize(w);  // Ensure the widget is realized so it can be drawn
+        // Create a new X11 window on top of the root window
+        XSetWindowAttributes attrs;
+        attrs.override_redirect = True;  // Make sure window manager doesn't handle it
+        attrs.background_pixel = XBlackPixel(dpy, DefaultScreen(dpy));  // Set background
 
-        // Optionally set the background color to transparent
-        GdkRGBA bgcolor = { 0, 0, 0, 0 };  // Fully transparent background
-        gtk_widget_override_background_color(w, GTK_STATE_FLAG_NORMAL, &bgcolor);
+        Window x11_win = XCreateWindow(
+            dpy, root,
+            0, 0, DisplayWidth(dpy, 0), DisplayHeight(dpy, 0),
+            0, CopyFromParent, InputOutput, CopyFromParent,
+            CWOverrideRedirect | CWBackPixel, &attrs
+        );
 
-        gtk_widget_show(w);  // Show the widget  
+        // Map the window
+        XMapWindow(dpy, x11_win);
+        XFlush(dpy);
 
+        // Create a GTK drawing area that draws on this X11 window
+        GdkWindow *gwin = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), x11_win);
+        w = gtk_widget_new(GTK_TYPE_WINDOW, "window", gwin, NULL);
+        gtk_widget_realize(w);  // Realize it for drawing
+        
     } else {
         w = gtk_plug_new(embed);
     }
