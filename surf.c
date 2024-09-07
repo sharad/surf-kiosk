@@ -32,6 +32,10 @@
 #include <X11/Xatom.h>
 #include <glib.h>
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+// #include <gdk/gdkx.h>
+
 #include "arg.h"
 #include "common.h"
 
@@ -1400,31 +1404,38 @@ createwindow(Client *c)
       printf("\n\nUsing root window\n\n");
 
 
-        // Handle the root window case directly using X11
+        // Use X11 directly to handle the root window
         Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
         Window root = DefaultRootWindow(dpy);
 
-        // Create a new X11 window on top of the root window
+        // Create a window and make it a child of the root window
         XSetWindowAttributes attrs;
-        attrs.override_redirect = True;  // Make sure window manager doesn't handle it
-        attrs.background_pixel = XBlackPixel(dpy, DefaultScreen(dpy));  // Set background
-
-        Window x11_win = XCreateWindow(
+        attrs.override_redirect = True;  // Avoid window manager control
+        attrs.background_pixel = XBlackPixel(dpy, DefaultScreen(dpy));
+        Window xwin = XCreateWindow(
             dpy, root,
             0, 0, DisplayWidth(dpy, 0), DisplayHeight(dpy, 0),
             0, CopyFromParent, InputOutput, CopyFromParent,
             CWOverrideRedirect | CWBackPixel, &attrs
         );
 
-        // Map the window
-        XMapWindow(dpy, x11_win);
+        XMapWindow(dpy, xwin);
         XFlush(dpy);
 
-        // Create a GTK drawing area that draws on this X11 window
-        GdkWindow *gwin = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), x11_win);
+        // Create a GdkWindow for GTK drawing
+        GdkWindow *gwin = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), xwin);
         w = gtk_widget_new(GTK_TYPE_WINDOW, "window", gwin, NULL);
-        gtk_widget_realize(w);  // Realize it for drawing
+
+        // Optionally make background transparent
+        GdkRGBA bgcolor = { 0, 0, 0, 0 };  // Transparent background
+        gtk_widget_override_background_color(w, GTK_STATE_FLAG_NORMAL, &bgcolor);
         
+        gtk_widget_realize(w);
+        gtk_widget_show(w);
+
+        // Handle drawing directly onto X11 window if needed
+        // This can be complex; ensure proper handling of WebKitGTK rendering
+
     } else {
         w = gtk_plug_new(embed);
     }
