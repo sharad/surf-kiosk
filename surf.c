@@ -1395,7 +1395,13 @@ createwindow(Client *c)
 	GtkWidget *w;
 
 	if (embed) {
-		w = gtk_plug_new(embed);
+		// w = gtk_plug_new(embed);
+
+    // If an embed window ID is provided, use it.
+    GdkWindow *gwin = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), embed);
+    w = gtk_widget_new(GTK_TYPE_PLUG, "window", gwin, NULL);
+    gtk_widget_show(w); // Show the plug widget to render in the provided window
+ 
 	} else {
 		w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
