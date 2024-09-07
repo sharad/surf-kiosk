@@ -1404,6 +1404,7 @@ createwindow(Client *c)
       printf("\n\nUsing root window\n\n");
 
 
+      Window xwin;
 
       {
         Display *dpy = XOpenDisplay(NULL);
@@ -1412,7 +1413,7 @@ createwindow(Client *c)
         XSetWindowAttributes attrs;
         attrs.override_redirect = True;  // Window manager should not control this window
         attrs.background_pixel = XBlackPixel(dpy, DefaultScreen(dpy));
-        Window xwin = XCreateWindow(
+        xwin = XCreateWindow(
           dpy, root,
           0, 0, DisplayWidth(dpy, 0), DisplayHeight(dpy, 0),
           0, CopyFromParent, InputOutput, CopyFromParent,
@@ -1427,7 +1428,7 @@ createwindow(Client *c)
       {
         // Create a GTK window to use with the X11 window
         w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-        GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), x11_window);
+        GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), xwin);
         gtk_widget_set_window(w, gdk_x11_window);
 
         gtk_widget_realize(w);
