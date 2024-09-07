@@ -1396,6 +1396,9 @@ createwindow(Client *c)
 
   if (embed) {
     if (embed == DefaultRootWindow(gdk_x11_display_get_xdisplay(gdk_display_get_default()))) {
+
+      printf("\n\nUsing root window\n\n");
+
         // Handle root window case differently
         GdkWindow *gwin = gdk_get_default_root_window();  // Get the default root window
         w = gtk_widget_new(GTK_TYPE_PLUG, "window", gwin, NULL);  // Use plug for root window
