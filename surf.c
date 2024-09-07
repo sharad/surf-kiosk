@@ -1401,22 +1401,48 @@ createwindow(Client *c)
   if (embed) {
     if (embed == DefaultRootWindow(gdk_x11_display_get_xdisplay(gdk_display_get_default()))) {
       printf("\n\nUsing root window\n\n");
-            // Get the display and root window
-            Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
-            Window root = DefaultRootWindow(dpy);
 
-            // Create a GTK window
-            w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-            // Set the GTK window to use the root window
-            GdkWindow *gdk_root_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), root);
-            gtk_widget_set_window(w, gdk_root_window);
+      {
+        Display *dpy;
+        Window root;
+        Window xwin;
+        XSetWindowAttributes attrs;
+        GC gc;
+        XEvent event;
+        XColor color;
+        Colormap colormap;
+        XVisualInfo visinfo;
+        XMatchVisualInfo(dpy, DefaultScreen(dpy), DefaultDepth(dpy, DefaultScreen(dpy)), TrueColor, &visinfo);
 
-            // Realize and show the GTK window
-            gtk_widget_realize(w);
-            gtk_widget_show_all(w);
+        dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+        root = DefaultRootWindow(dpy);
 
-            printf("GTK window created and associated with root window\n");
+        // Create an X11 window
+        attrs.override_redirect = True;
+        attrs.background_pixel = BlackPixel(dpy, DefaultScreen(dpy));
+        xwin = XCreateWindow(
+          dpy, root,
+          0, 0, DisplayWidth(dpy, DefaultScreen(dpy)), DisplayHeight(dpy, DefaultScreen(dpy)),
+          0, visinfo.depth, InputOutput, visinfo.visual,
+          CWOverrideRedirect | CWBackPixel, &attrs
+          );
+
+        XMapWindow(dpy, xwin);
+        XFlush(dpy);
+
+        // Create a GTK widget to overlay on the X11 window
+        GtkWidget *w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+        // Associate the GTK widget with the X11 window
+        GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), xwin);
+        gtk_widget_set_window(w, gdk_x11_window);
+
+        gtk_widget_realize(w);
+        gtk_widget_show_all(w);
+
+        printf("GTK window created and associated with X11 window on root\n");
+      }
 
     } else {
         w = gtk_plug_new(embed);
