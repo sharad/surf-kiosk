@@ -1402,8 +1402,15 @@ createwindow(Client *c)
     if (embed == DefaultRootWindow(gdk_x11_display_get_xdisplay(gdk_display_get_default()))) {
       printf("\n\nUsing root window\n\n");
 
+
+
             // Create an X11 window
             Display *dpy = XOpenDisplay(NULL);
+            if (!dpy) {
+                fprintf(stderr, "Unable to open X display\n");
+                return NULL;
+            }
+
             Window root = DefaultRootWindow(dpy);
             Window xwin;
 
@@ -1428,7 +1435,13 @@ createwindow(Client *c)
             gtk_widget_realize(w);
             gtk_widget_show_all(w);
 
+            // Debugging output
+            printf("GTK window created and associated with X11 window\n");
+
             XFree(dpy);  // Free the X display connection when done
+
+
+
     } else {
         w = gtk_plug_new(embed);
     }
