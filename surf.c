@@ -1432,7 +1432,7 @@ createwindow(Client *c)
         XFlush(dpy);
 
         // Create a GTK widget to overlay on the X11 window
-        GtkWidget *w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
         // Associate the GTK widget with the X11 window
         GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), xwin);
