@@ -1403,44 +1403,19 @@ createwindow(Client *c)
       printf("\n\nUsing root window\n\n");
 
 
+      // Get the display and root window
+      Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+      Window root = DefaultRootWindow(dpy);
 
-            // Create an X11 window
-            Display *dpy = XOpenDisplay(NULL);
-            if (!dpy) {
-                fprintf(stderr, "Unable to open X display\n");
-                return NULL;
-            }
+      // Create a GTK window to use with the root window
+      w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+      GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), root);
+      gtk_widget_set_window(w, gdk_x11_window);
 
-            Window root = DefaultRootWindow(dpy);
-            Window xwin;
+      gtk_widget_realize(w);
+      gtk_widget_show_all(w);
 
-            XSetWindowAttributes attrs;
-            attrs.override_redirect = True;
-            attrs.background_pixel = XBlackPixel(dpy, DefaultScreen(dpy));
-            xwin = XCreateWindow(
-                dpy, root,
-                0, 0, DisplayWidth(dpy, DefaultScreen(dpy)), DisplayHeight(dpy, DefaultScreen(dpy)),
-                0, CopyFromParent, InputOutput, CopyFromParent,
-                CWOverrideRedirect | CWBackPixel, &attrs
-            );
-
-            XMapWindow(dpy, xwin);
-            XFlush(dpy);
-
-            // Create a GTK window associated with the X11 window
-            w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-            GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), xwin);
-            gtk_widget_set_window(w, gdk_x11_window);
-
-            gtk_widget_realize(w);
-            gtk_widget_show_all(w);
-
-            // Debugging output
-            printf("GTK window created and associated with X11 window\n");
-
-            XFree(dpy);  // Free the X display connection when done
-
-
+      printf("GTK window created and associated with root window\n");
 
     } else {
         w = gtk_plug_new(embed);
