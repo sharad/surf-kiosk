@@ -1402,8 +1402,8 @@ createwindow(Client *c)
     if (embed == DefaultRootWindow(gdk_x11_display_get_xdisplay(gdk_display_get_default()))) {
       printf("\n\nUsing root window\n\n");
             // Get the display and root window
-            dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
-            root = DefaultRootWindow(dpy);
+            Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+            Window root = DefaultRootWindow(dpy);
 
             // Create a GTK window
             w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
