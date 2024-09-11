@@ -1409,6 +1409,12 @@ gboolean periodic_copy(gpointer user_data) {
     return TRUE;
 }
 
+gboolean periodic_update(gpointer user_data) {
+    GtkWidget *hidden_window = (GtkWidget *)user_data;
+    copy_to_root_window(hidden_window);
+    return TRUE;  // Continue running the timer
+}
+
 
 void
 showview(WebKitWebView *v, Client *c)
@@ -1464,7 +1470,7 @@ createwindow(Client *c)
 
 	if (embed) {
 		w = gtk_plug_new(embed);
-	} else {
+	} else if (0) {
 		w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 		wmstr = g_path_get_basename(argv0);
@@ -1476,7 +1482,36 @@ createwindow(Client *c)
 		g_free(wmstr);
 
 		gtk_window_set_default_size(GTK_WINDOW(w), winsize[0], winsize[1]);
-	}
+	} else {
+            // Use Xlib to create an off-screen window (hidden)
+        Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+        int screen = DefaultScreen(dpy);
+        Window root = RootWindow(dpy, screen);
+
+        // Create an off-screen (hidden) window for rendering
+        Window hidden_win = XCreateSimpleWindow(dpy, root, 0, 0, DisplayWidth(dpy, screen), DisplayHeight(dpy, screen), 0, BlackPixel(dpy, screen), BlackPixel(dpy, screen));
+        XSelectInput(dpy, hidden_win, ExposureMask | StructureNotifyMask);
+        XMapWindow(dpy, hidden_win);
+
+        // Create a GTK window to use with the X11 window (off-screen)
+        w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), hidden_win);
+        gtk_widget_set_window(w, gdk_x11_window);
+
+        // Realize and show the GTK widget (but this window remains hidden)
+        gtk_widget_realize(w);
+
+
+        wmstr = g_path_get_basename(argv0);
+        gtk_window_set_wmclass(GTK_WINDOW(w), wmstr, "Surf");
+        g_free(wmstr);
+
+        wmstr = g_strdup_printf("%s[%"PRIu64"]", "Surf", c->pageid);
+        gtk_window_set_role(GTK_WINDOW(w), wmstr);
+        g_free(wmstr);
+
+        gtk_window_set_default_size(GTK_WINDOW(w), winsize[0], winsize[1]);
+  }
 
 	g_signal_connect(G_OBJECT(w), "destroy",
 	                 G_CALLBACK(destroywin), c);
