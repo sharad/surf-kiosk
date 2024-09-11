@@ -1383,7 +1383,7 @@ void copy_to_root_window(GtkWidget *window) {
         // Draw the captured image onto the root window
         XPutImage(dpy, root, gc, image, 0, 0, 0, 0, width, height);
         XDestroyImage(image);
-        XFree(image);
+        // XFree(image);
       }
     }
 
