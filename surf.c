@@ -1452,7 +1452,7 @@ gboolean periodic_update(gpointer user_data) {
     return TRUE;  // Continue running the timer
 }
 
-
+/**
 void
 showview(WebKitWebView *v, Client *c)
 {
@@ -1498,6 +1498,53 @@ showview(WebKitWebView *v, Client *c)
 	setatom(c, AtomFind, "");
 	setatom(c, AtomUri, "about:blank");
 }
+*/
+
+void
+showview(WebKitWebView *v, Client *c) {
+    GdkRGBA bgcolor = { 0 };
+    GdkWindow *gwin;
+
+    c->finder = webkit_web_view_get_find_controller(c->view);
+    c->inspector = webkit_web_view_get_inspector(c->view);
+
+    c->pageid = webkit_web_view_get_page_id(c->view);
+    c->win = createwindow(c);
+
+    gtk_container_add(GTK_CONTAINER(c->win), GTK_WIDGET(c->view));
+    gtk_widget_show_all(c->win);
+  
+    // Add a timeout to periodically copy content to the root window
+    g_timeout_add_seconds(5, periodic_copy, c->win);
+
+    gtk_widget_grab_focus(GTK_WIDGET(c->view));
+
+    gwin = gtk_widget_get_window(GTK_WIDGET(c->win));
+    c->xid = gdk_x11_window_get_xid(gwin);
+    updatewinid(c);
+    if (showxid) {
+        gdk_display_sync(gtk_widget_get_display(c->win));
+        puts(winid);
+        fflush(stdout);
+    }
+
+    if (curconfig[HideBackground].val.i)
+        webkit_web_view_set_background_color(c->view, &bgcolor);
+
+    if (!curconfig[KioskMode].val.i) {
+        gdk_window_set_events(gwin, GDK_ALL_EVENTS_MASK);
+        gdk_window_add_filter(gwin, processx, c);
+    }
+
+    if (curconfig[RunInFullscreen].val.i)
+        togglefullscreen(c, NULL);
+
+    if (curconfig[ZoomLevel].val.f != 1.0)
+        webkit_web_view_set_zoom_level(c->view, curconfig[ZoomLevel].val.f);
+
+    setatom(c, AtomFind, "");
+    setatom(c, AtomUri, "about:blank");
+}
 
 GtkWidget *
 createwindow(Client *c)
@@ -1520,24 +1567,22 @@ createwindow(Client *c)
 
 		gtk_window_set_default_size(GTK_WINDOW(w), winsize[0], winsize[1]);
 	} else {
-            // Use Xlib to create an off-screen window (hidden)
         Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
         int screen = DefaultScreen(dpy);
         Window root = RootWindow(dpy, screen);
 
-        // Create an off-screen (hidden) window for rendering
+        // Create a hidden window for rendering
         Window hidden_win = XCreateSimpleWindow(dpy, root, 0, 0, DisplayWidth(dpy, screen), DisplayHeight(dpy, screen), 0, BlackPixel(dpy, screen), BlackPixel(dpy, screen));
         XSelectInput(dpy, hidden_win, ExposureMask | StructureNotifyMask);
         XMapWindow(dpy, hidden_win);
 
-        // Create a GTK window to use with the X11 window (off-screen)
+        // Create a GTK window to use with the X11 window (hidden)
         w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), hidden_win);
         gtk_widget_set_window(w, gdk_x11_window);
 
         // Realize and show the GTK widget (but this window remains hidden)
         gtk_widget_realize(w);
-
 
         wmstr = g_path_get_basename(argv0);
         gtk_window_set_wmclass(GTK_WINDOW(w), wmstr, "Surf");
