@@ -68,7 +68,9 @@ dist: distclean
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	cp -f surf $(DESTDIR)$(PREFIX)/bin
+	cp -f test $(DESTDIR)$(PREFIX)/bin
 	chmod 755 $(DESTDIR)$(PREFIX)/bin/surf
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/test
 	mkdir -p $(DESTDIR)$(LIBDIR)
 	cp -f $(WLIB) $(DESTDIR)$(LIBDIR)
 	for wlib in $(WLIB); do \
