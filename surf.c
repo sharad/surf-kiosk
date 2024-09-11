@@ -1355,8 +1355,11 @@ void copy_to_root_window(GtkWidget *window) {
     Window root = DefaultRootWindow(dpy);
 
     XWindowAttributes attrs;
-    XGetWindowAttributes(dpy, xwin, &attrs);
-
+    // XGetWindowAttributes(dpy, xwin, &attrs);
+    if (!XGetWindowAttributes(dpy, xwin, &attrs)) {
+        fprintf(stderr, "Failed to get window attributes for xwin.\n");
+        return;
+    }
 
     printf("surf window ID: 0x%lx\n", xwin);
     printf("root window ID: 0x%lx\n", root);
@@ -1377,6 +1380,7 @@ void copy_to_root_window(GtkWidget *window) {
         XImage *image = XGetImage(dpy, xwin, 0, 0, width, height, AllPlanes, ZPixmap);
         if (!image) {
           fprintf(stderr, "Failed to capture XImage from surf window.\n");
+          XFreeGC(dpy, gc);
           return;
         }
 
