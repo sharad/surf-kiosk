@@ -1587,7 +1587,7 @@ createwindow(Client *c)
 
 
         // Set the type hint to indicate it's not a regular window
-        gtk_window_set_type_hint(GTK_WINDOW(w), GDK_WINDOW_TYPE_HINT_UTILITY);
+        // gtk_window_set_type_hint(GTK_WINDOW(w), GDK_WINDOW_TYPE_HINT_UTILITY);
 
 
         wmstr = g_path_get_basename(argv0);
@@ -1598,7 +1598,7 @@ createwindow(Client *c)
         gtk_widget_realize(w);
 
         // Set the type hint to indicate it's not a regular window
-        gtk_window_set_type_hint(GTK_WINDOW(w), GDK_WINDOW_TYPE_HINT_UTILITY);
+        // gtk_window_set_type_hint(GTK_WINDOW(w), GDK_WINDOW_TYPE_HINT_UTILITY);
 
 
         wmstr = g_strdup_printf("%s[%"PRIu64"]", "Surf", c->pageid);
