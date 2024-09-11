@@ -10,6 +10,10 @@ OBJ = $(SRC:.c=.o)
 WOBJ = $(WSRC:.c=.o)
 WLIB = $(WSRC:.c=.so)
 
+
+TSRC = test.c
+TOBJ = $(TSRC:.c=.o)
+
 all: options surf $(WLIB)
 
 options:
@@ -22,10 +26,19 @@ options:
 surf: $(OBJ)
 	$(CC) $(SURFLDFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LIBS)
 
+
+test: $(TOBJ)
+	$(CC) $(SURFLDFLAGS) $(LDFLAGS) -o $@ $(TOBJ) $(LIBS)
+
 $(OBJ) $(WOBJ): config.h common.h config.mk
 
 config.h:
 	cp config.def.h $@
+
+
+$(TOBJ): $(TSRC)
+	$(CC) $(SURFCFLAGS) $(CFLAGS) -c $(TSRC)
+
 
 $(OBJ): $(SRC)
 	$(CC) $(SURFCFLAGS) $(CFLAGS) -c $(SRC)
