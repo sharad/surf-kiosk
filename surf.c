@@ -1589,12 +1589,17 @@ createwindow(Client *c)
         // Set the type hint to indicate it's not a regular window
         gtk_window_set_type_hint(GTK_WINDOW(w), GDK_WINDOW_TYPE_HINT_UTILITY);
 
-        // Realize and show the GTK widget (but this window remains hidden)
-        gtk_widget_realize(w);
 
         wmstr = g_path_get_basename(argv0);
         gtk_window_set_wmclass(GTK_WINDOW(w), wmstr, "Surf");
         g_free(wmstr);
+
+        // Realize and show the GTK widget (but this window remains hidden)
+        gtk_widget_realize(w);
+
+        // Set the type hint to indicate it's not a regular window
+        gtk_window_set_type_hint(GTK_WINDOW(w), GDK_WINDOW_TYPE_HINT_UTILITY);
+
 
         wmstr = g_strdup_printf("%s[%"PRIu64"]", "Surf", c->pageid);
         gtk_window_set_role(GTK_WINDOW(w), wmstr);
