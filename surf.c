@@ -1366,6 +1366,10 @@ void copy_to_root_window(GtkWidget *window) {
 
     // Create a graphics context
     GC gc = XCreateGC(dpy, root, 0, NULL);
+    if (!gc) {
+        fprintf(stderr, "Failed to create graphics context for root window.\n");
+        return;
+    }
 
     // Get the width and height of the window
     int width = gdk_window_get_width(gdk_window);
@@ -1374,7 +1378,16 @@ void copy_to_root_window(GtkWidget *window) {
     if (attrs.map_state == IsViewable) {
       if (0) {
         // Copy the content of the surf window to the root window
-        XCopyArea(dpy, xwin, root, gc, 0, 0, width, height, 0, 0);
+        int result = XCopyArea(dpy, xwin, root, gc, 0, 0, width, height, 0, 0);
+        if (result == BadDrawable) {
+          fprintf(stderr, "XCopyArea failed: BadDrawable.\n");
+        } else if (result == BadGC) {
+          fprintf(stderr, "XCopyArea failed: BadGC.\n");
+        } else if (result == BadMatch) {
+          fprintf(stderr, "XCopyArea failed: BadMatch.\n");
+        }
+
+
       } else {
         // Capture the image from the surf window
         XImage *image = XGetImage(dpy, xwin, 0, 0, width, height, AllPlanes, ZPixmap);
@@ -1385,7 +1398,15 @@ void copy_to_root_window(GtkWidget *window) {
         }
 
         // Draw the captured image onto the root window
-        XPutImage(dpy, root, gc, image, 0, 0, 0, 0, width, height);
+        int put_result = XPutImage(dpy, root, gc, image, 0, 0, 0, 0, width, height);
+        if (put_result == BadDrawable) {
+          fprintf(stderr, "XPutImage failed: BadDrawable.\n");
+        } else if (put_result == BadGC) {
+          fprintf(stderr, "XPutImage failed: BadGC.\n");
+        } else if (put_result == BadMatch) {
+          fprintf(stderr, "XPutImage failed: BadMatch.\n");
+        }
+
         XDestroyImage(image);
         // XFree(image);
       }
