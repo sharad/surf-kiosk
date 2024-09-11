@@ -1344,6 +1344,45 @@ winevent(GtkWidget *w, GdkEvent *e, Client *c)
 	return FALSE;
 }
 
+// Function to copy window content to the root window
+void copy_to_root_window(GtkWidget *window) {
+    // Get the X11 display and GDK drawable of the GTK window
+    Display *dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+    GdkWindow *gdk_window = gtk_widget_get_window(window);
+    Window xwin = gdk_x11_window_get_xid(gdk_window);
+
+    // Get the root window
+    Window root = DefaultRootWindow(dpy);
+
+    // Create a graphics context
+    GC gc = XCreateGC(dpy, root, 0, NULL);
+
+    // Get the width and height of the window
+    int width = gdk_window_get_width(gdk_window);
+    int height = gdk_window_get_height(gdk_window);
+
+    // Copy the content of the surf window to the root window
+    XCopyArea(dpy, xwin, root, gc, 0, 0, width, height, 0, 0);
+
+    // Free the graphics context
+    XFreeGC(dpy, gc);
+
+    // Flush the display to make sure the content is drawn
+    XFlush(dpy);
+}
+
+// Function to set up a periodic timer
+gboolean periodic_copy(gpointer user_data) {
+    GtkWidget *window = (GtkWidget *)user_data;
+
+    // Copy content to the root window
+    copy_to_root_window(window);
+
+    // Continue calling this function every 5 seconds (5000 ms)
+    return TRUE;
+}
+
+
 void
 showview(WebKitWebView *v, Client *c)
 {
@@ -1358,6 +1397,8 @@ showview(WebKitWebView *v, Client *c)
 
 	gtk_container_add(GTK_CONTAINER(c->win), GTK_WIDGET(c->view));
 	gtk_widget_show_all(c->win);
+  // Add this in your main function or after creating the GTK window
+  g_timeout_add_seconds(5, periodic_copy, c->win);
 	gtk_widget_grab_focus(GTK_WIDGET(c->view));
 
 	gwin = gtk_widget_get_window(GTK_WIDGET(c->win));
