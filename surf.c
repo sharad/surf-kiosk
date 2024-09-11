@@ -1365,6 +1365,10 @@ void copy_to_root_window(GtkWidget *window) {
     printf("root window ID: 0x%lx\n", root);
 
 
+    // Get the width and height of the window
+    int width = gdk_window_get_width(gdk_window);
+    int height = gdk_window_get_height(gdk_window);
+
 
     // Create a pixmap to store the window content
     Pixmap pixmap = XCreatePixmap(dpy, root, width, height, attrs.depth);
@@ -1379,10 +1383,6 @@ void copy_to_root_window(GtkWidget *window) {
         fprintf(stderr, "Failed to create graphics context for root window.\n");
         return;
     }
-
-    // Get the width and height of the window
-    int width = gdk_window_get_width(gdk_window);
-    int height = gdk_window_get_height(gdk_window);
 
     if (attrs.map_state == IsViewable) {
       if (0) {
