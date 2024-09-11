@@ -4,27 +4,33 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-// Function to draw a white rectangle on the root window
+// Function to clear the root window and draw a white rectangle
 void draw_rectangle(Display *dpy, Window root) {
     // Get the screen's default graphics context and other attributes
     int screen = DefaultScreen(dpy);
     GC gc = XCreateGC(dpy, root, 0, NULL);
-    
+
     if (!gc) {
         fprintf(stderr, "Failed to create graphics context.\n");
         return;
     }
 
-    XSetForeground(dpy, gc, WhitePixel(dpy, screen));
+    // Set the background color to black (or any other desired color)
+    XSetWindowBackground(dpy, root, BlackPixel(dpy, screen));
 
-    // Get root window dimensions
-    XWindowAttributes root_attrs;
-    XGetWindowAttributes(dpy, root, &root_attrs);
+    // Clear the window to apply the new background color
+    XClearWindow(dpy, root);
 
     // Create a pixmap for the background
+    XWindowAttributes root_attrs;
+    XGetWindowAttributes(dpy, root, &root_attrs);
     Pixmap bg_pixmap = XCreatePixmap(dpy, root, root_attrs.width, root_attrs.height, root_attrs.depth);
 
+    // Fill the background pixmap with the black color
+    XFillRectangle(dpy, bg_pixmap, gc, 0, 0, root_attrs.width, root_attrs.height);
+
     // Draw a white rectangle in the center of the pixmap
+    XSetForeground(dpy, gc, WhitePixel(dpy, screen));
     int rect_width = 200, rect_height = 150;
     int x = (root_attrs.width - rect_width) / 2;
     int y = (root_attrs.height - rect_height) / 2;
@@ -33,7 +39,7 @@ void draw_rectangle(Display *dpy, Window root) {
     // Set the pixmap as the background of the root window
     XSetWindowBackgroundPixmap(dpy, root, bg_pixmap);
 
-    // Clear the window to display the new background
+    // Clear the window again to display the new background pixmap
     XClearWindow(dpy, root);
 
     // Flush the display to apply changes
@@ -71,5 +77,4 @@ int main() {
     XCloseDisplay(dpy);
     return 0;
 }
-
 
