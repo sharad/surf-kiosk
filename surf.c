@@ -1513,6 +1513,10 @@ showview(WebKitWebView *v, Client *c) {
 
     gtk_container_add(GTK_CONTAINER(c->win), GTK_WIDGET(c->view));
     gtk_widget_show_all(c->win);
+
+
+    // Make sure the hidden window remains hidden
+    gtk_widget_hide(c->win);
   
     // Add a timeout to periodically copy content to the root window
     g_timeout_add_seconds(5, periodic_copy, c->win);
