@@ -1500,6 +1500,9 @@ showview(WebKitWebView *v, Client *c)
 }
 */
 
+
+/*
+
 void
 showview(WebKitWebView *v, Client *c) {
     GdkRGBA bgcolor = { 0 };
@@ -1620,6 +1623,39 @@ createwindow(Client *c)
 	                 G_CALLBACK(winevent), c);
 
 	return w;
+}
+
+*/
+
+void showview(WebKitWebView *v, Client *c) {
+    c->finder = webkit_web_view_get_find_controller(c->view);
+    c->inspector = webkit_web_view_get_inspector(c->view);
+
+    c->pageid = webkit_web_view_get_page_id(c->view);
+    c->win = createwindow(c);
+
+    gtk_container_add(GTK_CONTAINER(c->win), GTK_WIDGET(c->view));
+    gtk_widget_show_all(c->win);
+
+    // Add periodic update function
+    g_timeout_add_seconds(5, periodic_update, c->win);
+    gtk_widget_grab_focus(GTK_WIDGET(c->view));
+}
+
+GtkWidget *createwindow(Client *c) {
+    GtkWidget *w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+    // Set up window properties
+    gtk_window_set_default_size(GTK_WINDOW(w), winsize[0], winsize[1]);
+
+    // Connect signals and set up the window
+    g_signal_connect(G_OBJECT(w), "destroy", G_CALLBACK(destroywin), c);
+    g_signal_connect(G_OBJECT(w), "enter-notify-event", G_CALLBACK(winevent), c);
+    g_signal_connect(G_OBJECT(w), "key-press-event", G_CALLBACK(winevent), c);
+    g_signal_connect(G_OBJECT(w), "leave-notify-event", G_CALLBACK(winevent), c);
+    g_signal_connect(G_OBJECT(w), "window-state-event", G_CALLBACK(winevent), c);
+
+    return w;
 }
 
 gboolean
