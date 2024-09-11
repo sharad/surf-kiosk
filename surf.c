@@ -1585,6 +1585,10 @@ createwindow(Client *c)
         GdkWindow *gdk_x11_window = gdk_x11_window_foreign_new_for_display(gdk_display_get_default(), hidden_win);
         gtk_widget_set_window(w, gdk_x11_window);
 
+
+        // Set the type hint to indicate it's not a regular window
+        gtk_window_set_type_hint(GTK_WINDOW(w), GDK_WINDOW_TYPE_HINT_UTILITY)
+
         // Realize and show the GTK widget (but this window remains hidden)
         gtk_widget_realize(w);
 
