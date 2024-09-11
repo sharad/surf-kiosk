@@ -50,14 +50,6 @@ void draw_rectangle(Display *dpy, Window root) {
     XFreeGC(dpy, gc);
 }
 
-// Periodic redraw function
-void periodic_redraw(Display *dpy, Window root) {
-    while (1) {
-        draw_rectangle(dpy, root);
-        sleep(5);  // Redraw every 5 seconds to keep it persistent
-    }
-}
-
 int main() {
     Display *dpy = XOpenDisplay(NULL);
     if (!dpy) {
@@ -68,13 +60,12 @@ int main() {
     int screen = DefaultScreen(dpy);
     Window root = RootWindow(dpy, screen);
 
-    // Draw the initial white rectangle
+    // Draw the white rectangle once
     draw_rectangle(dpy, root);
 
-    // Periodically redraw the rectangle to maintain its visibility
-    periodic_redraw(dpy, root);
-
+    // Close the display and exit
     XCloseDisplay(dpy);
     return 0;
 }
+
 
