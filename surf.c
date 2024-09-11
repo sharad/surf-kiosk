@@ -1354,6 +1354,11 @@ void copy_to_root_window(GtkWidget *window) {
     // Get the root window
     Window root = DefaultRootWindow(dpy);
 
+
+
+    printf("surf window ID: 0x%lx\n", xwin);
+    printf("root window ID: 0x%lx\n", root);
+
     // Create a graphics context
     GC gc = XCreateGC(dpy, root, 0, NULL);
 
@@ -1361,8 +1366,22 @@ void copy_to_root_window(GtkWidget *window) {
     int width = gdk_window_get_width(gdk_window);
     int height = gdk_window_get_height(gdk_window);
 
-    // Copy the content of the surf window to the root window
-    XCopyArea(dpy, xwin, root, gc, 0, 0, width, height, 0, 0);
+
+    if (0) {
+      // Copy the content of the surf window to the root window
+      XCopyArea(dpy, xwin, root, gc, 0, 0, width, height, 0, 0);
+    } else {
+        // Capture the image from the surf window
+      XImage *image = XGetImage(dpy, xwin, 0, 0, width, height, AllPlanes, ZPixmap);
+      if (!image) {
+        fprintf(stderr, "Failed to capture XImage from surf window.\n");
+        return;
+      }
+
+      // Draw the captured image onto the root window
+      XPutImage(dpy, root, gc, image, 0, 0, 0, 0, width, height);
+      XFree(image);
+    }
 
     // Free the graphics context
     XFreeGC(dpy, gc);
