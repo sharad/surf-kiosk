@@ -14,7 +14,7 @@ WLIB = $(WSRC:.c=.so)
 TSRC = test.c
 TOBJ = $(TSRC:.c=.o)
 
-all: options surf $(WLIB)
+all: options surf test $(WLIB)
 
 options:
 	@echo surf build options:
