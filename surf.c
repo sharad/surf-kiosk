@@ -1364,6 +1364,15 @@ void copy_to_root_window(GtkWidget *window) {
     printf("surf window ID: 0x%lx\n", xwin);
     printf("root window ID: 0x%lx\n", root);
 
+
+
+    // Create a pixmap to store the window content
+    Pixmap pixmap = XCreatePixmap(dpy, root, width, height, attrs.depth);
+    if (!pixmap) {
+        fprintf(stderr, "Failed to create pixmap for root window.\n");
+        return;
+    }
+
     // Create a graphics context
     GC gc = XCreateGC(dpy, root, 0, NULL);
     if (!gc) {
@@ -1394,11 +1403,13 @@ void copy_to_root_window(GtkWidget *window) {
         if (!image) {
           fprintf(stderr, "Failed to capture XImage from surf window.\n");
           XFreeGC(dpy, gc);
+          XFreePixmap(dpy, pixmap);
           return;
         }
 
         // Draw the captured image onto the root window
-        int put_result = XPutImage(dpy, root, gc, image, 0, 0, 0, 0, width, height);
+        // int put_result = XPutImage(dpy, root, gc, image, 0, 0, 0, 0, width, height);
+        int put_result = XPutImage(dpy, pixmap, gc, image, 0, 0, 0, 0, width, height);
         if (put_result == BadDrawable) {
           fprintf(stderr, "XPutImage failed: BadDrawable.\n");
         } else if (put_result == BadGC) {
@@ -1408,13 +1419,18 @@ void copy_to_root_window(GtkWidget *window) {
         }
 
         XDestroyImage(image);
+        // Set the root window background to the created pixmap
+        XSetWindowBackgroundPixmap(dpy, root, pixmap);
+        XClearWindow(dpy, root);  // Clear and redraw the root window to apply the new background
+
+
+        XFreePixmap(dpy, pixmap);
         // XFree(image);
       }
     }
 
     // Free the graphics context
     XFreeGC(dpy, gc);
-
     // Flush the display to make sure the content is drawn
     XFlush(dpy);
 }
